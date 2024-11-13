@@ -90,7 +90,7 @@ async function fetchServers(place = '', cursor = '', attempts = 0) {
   }
 
   for (const s of data) {
-    for (const t of server.playerTokens) {
+    for (const t of s.playerTokens) {
       playersCount += 1;
       allPlayers.push({
         token: t,
@@ -100,7 +100,7 @@ async function fetchServers(place = '', cursor = '', attempts = 0) {
       });
     }
 
-    maxPlayers = server.maxPlayers;
+    maxPlayers = s.maxPlayers;
   }
 
   if (!nextPageCursor || canceled) {
