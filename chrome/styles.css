@@ -21,6 +21,11 @@
     border-radius: 5px;
 }
 
+#sbx-input:focus-visible {
+    outline: none
+}
+
+
 #sbx-panel {
     grid-template-rows: 50px 25px 25px 50px;
     grid-template-columns: 25px 150px 10px;
