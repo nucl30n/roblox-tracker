@@ -79,31 +79,29 @@ let highlighted = [];
 const allThumbnails = new Map();
 
 async function fetchServers(place = '', cursor = '', attempts = 0) {
-  const { nextPageCursor, data } = await get(`https://games.roblox.com/v1/games/${place}/servers/Public?limit=100&cursor=${cursor}`);
+  const response = await fetch(`https://games.roblox.com/v1/games/${place}/servers/Public?limit=100&cursor=${cursor}`);
+  const { nextPageCursor, data } = await response.json();
 
-  if (attempts >= 30) {
-    foundAllServers = true;
-    return;
-  }
+  foundAllServers = (attempts >= 30) ? true : foundAllServers;
 
   if (!data || data.length === 0) {
     await sleep(1);
     return fetchServers(place, cursor, attempts + 1);
   }
 
-  data.forEach((server) => {
-    server.playerTokens.forEach((playerToken) => {
+  for (const s of data) {
+    for (const t of server.playerTokens) {
       playersCount += 1;
       allPlayers.push({
-        token: playerToken,
+        token: t,
         type: 'AvatarHeadshot',
         size: '150x150',
-        requestId: server.id,
+        requestId: s.id,
       });
-    });
+    }
 
     maxPlayers = server.maxPlayers;
-  });
+  }
 
   if (!nextPageCursor || canceled) {
     foundAllServers = true;
@@ -140,35 +138,28 @@ async function findTarget(imageUrl, place) {
     post('https://thumbnails.roblox.com/v1/batch', JSON.stringify(chosenPlayers)).then(({ data: thumbnailsData }) => {
       if (canceled) return;
 
-      thumbnailsData.forEach((thumbnailData) => {
-        const thumbnails = allThumbnails.get(thumbnailData.requestId) || [];
+      for (const th of thumbnailsData) {
+        const thumbnails = allThumbnails.get(th.requestId) || [];
 
-        if (thumbnails.length == 0) {
-          allThumbnails.set(thumbnailData.requestId, thumbnails);
-        }
+        thumbnails.length == 0 && allThumbnails.set(th.requestId, thumbnails);
 
         targetsChecked += 1;
 
-        if (!thumbnails.includes(thumbnailData.imageUrl)) {
-          thumbnails.push(thumbnailData.imageUrl);
-        }
+        !thumbnails.includes(th.imageUrl) && thumbnails.push(th.imageUrl);
 
         bar.style.width = `${Math.round((targetsChecked / playersCount) * 100)}%`;
 
-        const foundTarget = thumbnailData.imageUrl === imageUrl ? thumbnailData.requestId : null;
-
-        if (foundTarget) {
+        if (th.imageUrl === imageUrl) {
           renderServers();
-
-          targetServersId.push(foundTarget);
+          targetServersId.push(th.requestId);
           searchingTarget = false;
         }
-      });
+      }
     });
   }
 
   if (targetServersId.length) {
-    targetServersId.forEach((targetServerId) => {
+    for (const targetServerId of targetServersId) {
       icon.src = getURL('images/user-success.png');
       color(COLORS.GREEN);
       setTimeout(() => color(COLORS.BLUE), 1000);
@@ -186,15 +177,15 @@ async function findTarget(imageUrl, place) {
 
       item.className = 'stack-row rbx-game-server-item highlighted';
       item.innerHTML = `
-        <div class="section-left rbx-game-server-details'">
-        <div class="text-info rbx-game-status rbx-game-server-status'">${thumbnails.length} of ${maxPlayers} people max</div>
-        <span>
-        <button data-id="${targetServerId}" type="button" class="btn-full-width btn-control-xs rbx-game-server-join btn-primary-md btn-min-width">Join</button>
-        </span>
-        </div>
-        <div class="section-right rbx-game-server-players">
-        ${thumbnails.map(url => `<span class="avatar avatar-headshot-sm player-avatar"><span class="thumbnail-2d-container avatar-card-image"><img src="${url}"></span></span>`).join('')}
-        </div>`;
+      <div class="section-left rbx-game-server-details'">
+      <div class="text-info rbx-game-status rbx-game-server-status'">${thumbnails.length} of ${maxPlayers} people max</div>
+      <span>
+      <button data-id="${targetServerId}" type="button" class="btn-full-width btn-control-xs rbx-game-server-join btn-primary-md btn-min-width">Join</button>
+      </span>
+      </div>
+      <div class="section-right rbx-game-server-players">
+      ${thumbnails.map(url => `<span class="avatar avatar-headshot-sm player-avatar"><span class="thumbnail-2d-container avatar-card-image"><img src="${url}"></span></span>`).join('')}
+      </div>`;
 
       first.parentNode.insertBefore(item, first);
       highlighted.push(item);
@@ -202,7 +193,7 @@ async function findTarget(imageUrl, place) {
       const [join] = document.querySelectorAll(`[data-id="${targetServerId}"]`);
       join.onclick = () => chrome.runtime.sendMessage({ message: { place, id: targetServerId } });
       status.innerText = 'Found target';
-    });
+    }
   } else {
     color(canceled ? COLORS.BLUE : COLORS.RED);
     status.innerText = canceled ? 'Canceled search' : 'Target not found!';
@@ -217,13 +208,13 @@ async function findTarget(imageUrl, place) {
 }
 
 function renderServers() {
-  highlighted.forEach((item) => {
+  for (const item of highlighted) {
     item.remove();
-  });
+  }
 
   highlighted = [];
 
-  targetServersId.forEach((targetServerId) => {
+  for (const targetServerId of targetServersId) {
     icon.src = getURL('images/user-success.png');
     color(COLORS.GREEN);
     setTimeout(() => color(COLORS.BLUE), 1000);
@@ -251,7 +242,7 @@ function renderServers() {
     const [join] = document.querySelectorAll(`[data-id="${targetServerId}"]`);
     join.onclick = () => chrome.runtime.sendMessage({ message: { place, id: targetServerId } });
     status.innerText = 'Found target';
-  });
+  }
 }
 
 async function find(imageUrl, place) {
@@ -277,7 +268,6 @@ async function find(imageUrl, place) {
 }
 
 search.addEventListener('click', async event => {
-  // Prevents page from refreshing
   event.preventDefault();
 
   if (searching) {
@@ -306,7 +296,9 @@ search.addEventListener('click', async event => {
 
   const thumbnail = await get(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${user.id}&size=150x150&format=Png&isCircular=false`);
 
-  highlighted.forEach((item) => item.remove());
+  for (const item of highlighted) {
+    item.remove();
+  }
 
   find(thumbnail.data[0].imageUrl, place);
 
