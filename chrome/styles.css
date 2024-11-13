@@ -1,0 +1,59 @@
+#sbx-panel {
+    display: grid;
+}
+
+#sbx-search {
+    z-index: 1;
+    border: none;
+    background-color: #232527;
+    transition: background-color 0.5s;
+}
+
+#sbx-search:disabled {
+    opacity: 50%;
+}
+
+#sbx-input {
+    border-style: none;
+    height: 37px;
+    border-radius: 5px;
+}
+
+#sbx-panel>img {
+    grid-area: 1/3/2/4;
+}
+
+#sbx-status {
+    position: absolute;
+}
+
+#sbx-progress {
+    position: absolute;
+    width: 226px;
+}
+
+#sbx-bar {
+
+    height: 7px;
+    width: 0%;
+    background-color: #5e00ac;
+    transition: width 0.5s, background-color 0.5s;
+}
+
+#sbx-user {
+    position: relative;
+    height: 20px;
+    width: 20px;
+}
+
+.dark {
+    background-color: #393b3d !important;
+}
+
+.invalid {
+    border-color: rgb(150, 0, 50) !important;
+}
+
+.highlighted {
+    border: solid #00b098 !important;
+}
