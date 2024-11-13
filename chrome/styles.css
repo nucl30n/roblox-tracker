@@ -15,8 +15,12 @@
 
 #sbx-input {
     border-style: none;
-    height: 37px;
+
     border-radius: 5px;
+}
+
+#sbx-panel {
+    grid-template-rows: 50px 25px 25px 50px;
 }
 
 #sbx-panel>img {
@@ -24,12 +28,10 @@
 }
 
 #sbx-panel>form {
-    grid-area: 3/1/4/2;
+    grid-area: 2 / 1 / 3 / 2;
 }
 
-#sbx-status {
-    position: absolute;
-}
+#sbx-status {}
 
 #sbx-progress {
     position: absolute;
