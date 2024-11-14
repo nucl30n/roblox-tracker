@@ -1,10 +1,9 @@
 function waitForElm(selector) {
   return new Promise(resolve => {
-    document.querySelector(selector) && resolve(document.querySelector(selector));
+    document.getElementById(selector) && resolve(document.getElementById(selector));
 
     const observer = new MutationObserver(() =>
-      document.querySelector(selector) && resolve(document.querySelector(selector)) && observer.disconnect()
-
+      document.getElementById(selector) && resolve(document.getElementById(selector)) && observer.disconnect()
     );
 
     observer.observe(document.body, {
@@ -18,7 +17,7 @@ function waitForElm(selector) {
   const div = document.createElement('div');
   div.id = 'sbx-panel';
   div.innerHTML = await fetch(chrome.runtime.getURL('panel.html')).then(res => res.text());
-  const runningGames = await waitForElm('#rbx-running-games');
+  const runningGames = await waitForElm('rbx-running-games');
 
   runningGames.parentNode.insertBefore(div, runningGames);
 })();
